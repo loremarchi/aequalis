@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
+import pandas as pd
+import numpy as np
 from bayes_utils import *
 from bayes import *
 import matplotlib.pyplot as plt
 
-data_file = './data/adult.data'
-data = loadCsv(data_file)
+data = pd.read_csv('./data/adult.data', header = None).to_numpy()
 
 data = discretize_variable(data, 0)
 data = discretize_variable(data, 2)
@@ -16,8 +17,9 @@ data = discretize_variable(data, 12)
 
 data = uniform_data(data)
 
-test_data_file = './data/adult.test'
-test_data = loadCsv(test_data_file)
+check = pd.DataFrame(data)
+
+test_data = pd.read_csv('./data/adult.test', header = None).to_numpy()
 
 test_data = discretize_variable(test_data, 0)
 test_data = discretize_variable(test_data, 2)
@@ -50,9 +52,9 @@ print ("Discrimination score: %s " %  two_m_model.discrimination_measure(9, '>50
 modified_model = BalancedBayesModel()
 modified_model.train(data)
 
-plot_data = modified_model.balance_model(
-        index=9, discriminated_class="Female", privileged_class="Male",
-        positive_label='>50K', negative_label='<=50K', train_data=data)
+#plot_data = modified_model.balance_model(
+#        index=9, discriminated_class="Female", privileged_class="Male",
+#        positive_label='>50K', negative_label='<=50K', train_data=data)
 
 print ("MODIFIEND MODEL:")
 print ("Accuracy: %s " % modified_model.test(test_data)[0])

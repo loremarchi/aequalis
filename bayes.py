@@ -1,5 +1,5 @@
 from bayes_utils import *
-
+import pandas as pd
 
 class BinaryBayesModel(object):
     # Basic Bayes Model fro reference
@@ -29,7 +29,7 @@ class BinaryBayesModel(object):
             total_len = self.total_len
 
         probabilities = {}
-        for classValue, classSummaries in summaries.iteritems():
+        for classValue, classSummaries in summaries.items():
             summary = classSummaries[0]
             total = classSummaries[1]
             probabilities[classValue] = float(1)
@@ -45,7 +45,7 @@ class BinaryBayesModel(object):
     def predict(self, input):
         probabilities = self.evaluate(input)
         bestLabel, bestProb = None, -1
-        for classValue, probability in probabilities.iteritems():
+        for classValue, probability in probabilities.items():
             if bestLabel is None or probability > bestProb:
                 bestProb = probability
                 bestLabel = classValue
@@ -88,7 +88,7 @@ class BinaryBayesModel(object):
             if predictions[i] == label:
                 results[test_data[i][index]] += 1
 
-        for key, value in test_global_summary[0][index].iteritems():
+        for key, value in test_global_summary[0][index].items():
             results[key] = float(results[key])/value
 
         # warning, this only supports 2 classes for now:
@@ -122,11 +122,11 @@ class SplitFairBayesModel(BinaryBayesModel):
 
             for possible_value in possible_values:
                 # TODO: Copy the list, pop and buld recursively this thing.
-                data_set_partition = filter(
-                    lambda x: x[index] == possible_value, train_data)
+                data_set_partition = np.array(list(filter(
+                    lambda x: x[index] == possible_value, train_data)))
 
                 self.sensitive_params_summaries[index][possible_value] = \
-                    super(SplitedFairBayesModel, self).train(data_set_partition)
+                    super(SplitFairBayesModel, self).train(data_set_partition)
 
     def predict(self, input):
         # Decide what to model to use:
@@ -140,7 +140,7 @@ class SplitFairBayesModel(BinaryBayesModel):
             self.evaluate(input, summaries=summaries,
                           global_summary=global_summary, total_len=total_len)
         bestLabel, bestProb = None, -1
-        for classValue, probability in probabilities.iteritems():
+        for classValue, probability in probabilities.items():
             if bestLabel is None or probability > bestProb:
                 bestProb = probability
                 bestLabel = classValue
@@ -172,7 +172,7 @@ class BalancedBayesModel(BinaryBayesModel):
                 results[test_data[i][index]] += 1
                 total[test_data[i][index]] += 1
 
-        for key, value in test_global_summary[0][index].iteritems():
+        for key, value in test_global_summary[0][index].items():
             results[key] = float(results[key])/value
 
         # warning, this only supports 2 classes for now:
@@ -186,8 +186,8 @@ class BalancedBayesModel(BinaryBayesModel):
             positive_label, negative_label, train_data):
         balance_resutls = []
 
-        total_positive_labels = len(
-            filter(lambda x: x[index] == positive_label, train_data))
+        total_positive_labels = len(list(
+            filter(lambda x: x[index] == positive_label, train_data)))
 
         (disc, assinged_labels) = \
             self.discrimination_measure(index, discriminated_class,

@@ -1,14 +1,14 @@
 # A set of tools
 
-
+import numpy as np
 import math
 import csv
 import string
 import scipy.stats as stats
 from collections import Counter
 
-import multiprocessing
-pool = multiprocessing.Pool()
+# import multiprocessing
+# pool = multiprocessing.Pool()
 
 # Some code was reused to avoid boilerplate.
 # Credit to:
@@ -27,7 +27,7 @@ def loadCsv(filename):
 def uniform_data(dataset):
     # Some labels have . and extra spaces. Unoform data will strip spaces and
     # remove .
-    return [[t.strip().replace(".", "") for t in i] for i in dataset]
+    return [[str(t).strip().replace(".", "") for t in i] for i in dataset]
 
 
 def mean(numbers):
@@ -70,13 +70,12 @@ def summarize(dataset):
 
 def discretize_variable(dataset, index):
     # Inneficiently puts a constant variable into one of the 4 percentiles
-    print "Discretizing... variable %s" % index
-    variable_values = [sample[index] for sample in dataset]
+    print(f"Discretizing... variable {index}")
+    # variable_values = [sample[index] for sample in dataset]
     new_values = stats.rankdata(
-        variable_values, "average")/len(variable_values)
+        dataset[:, index], "average")/dataset.shape[0]
+    dataset[:, index] = (np.round(new_values*100)/25).astype(int)
 
-    for i in range(0, len(dataset)):
-        dataset[i][index] = str(int(round((new_values[i]*100)/25)))
     return dataset
 
 
@@ -98,7 +97,7 @@ def summarizeByClass(dataset):
     # eg {positive: ((mean, stdv)(mean, stdv)}
     separated = separateByClass(dataset)
     summaries = {}
-    for classValue, instances in separated.iteritems():
+    for classValue, instances in separated.items():
         summaries[classValue] = summarize(instances)
     return summaries
 
@@ -108,7 +107,7 @@ def discrete_summarize_by_class(dataset):
     # eg {positive: ((mean, stdv)(mean, stdv)}
     separated = separateByClass(dataset)
     summaries = {}
-    for classValue, instances in separated.iteritems():
+    for classValue, instances in separated.items():
         summaries[classValue] = discrete_summarize(instances)
     return summaries
 
@@ -131,7 +130,7 @@ def calculateDiscreteProbability(x, mean, stdev):
 
 def calculateClassProbabilities(summaries, inputVector):
     probabilities = {}
-    for classValue, classSummaries in summaries.iteritems():
+    for classValue, classSummaries in summaries.items():
         probabilities[classValue] = 1
         for i in range(len(classSummaries)):
             mean, stdev = classSummaries[i]
